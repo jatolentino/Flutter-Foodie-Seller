@@ -404,9 +404,8 @@ Test 6.1: In the terminal run:
 ```bash
 flutter pub get
 ```
-Compiled @ the branch of [`ver-1.0`](https://github.com/jatolentino/Flutter_login/tree/ver1.0)
+Compiled @ the branch of [`ver-1.0`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.0)
     <p align="center">
-    	<img src="https://github.com/jatolentino/Flutter-Foodie/blob/master/sources/step6-test-1%1C1.png" width="300">
-        <img src="https://github.com/jatolentino/Flutter-Foodie/blob/master/sources/step6-test-1%2C2.png" width="300">
+    	<img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.0/sources/step6-test-1%2C1.png" width="300">
     </p>
     
