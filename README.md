@@ -407,5 +407,6 @@ flutter pub get
 Compiled @ the branch of [`ver-1.0`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.0)
     <p align="center">
     	<img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.0/sources/step6-test-1%2C1.png" width="300">
+        
     </p>
     
