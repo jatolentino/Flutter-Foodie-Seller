@@ -34,8 +34,9 @@ This is the final result of the projected obtained @ the step 11 that belongs to
 
 - Create the project, in the terminal run:
     ```bash
-    flutter create --org com.app.foodie foodie
+    flutter create --org com.app foodie
     ```
+  > Bundle ID will be: `com.app.foodie`, the name of the project is added by default at the end of `com.app`
 
 - Open VSCODE and open the folder `foodie` just created
 - Navigate to the Source Control icon on VSCODE and choose the option `Publish to Github`, then enter your credentials and set the name of the repo (Flutter-Foodie).
@@ -728,4 +729,218 @@ class _RegisterScreenState extends State<RegisterScreen> {
   > -Also, open google maps and verify that it can show the actual location <br>
   > -Finally, if it's necessary to change the location to any point in the map so that the emulator picks that point as the actual location, tap on the three dots of the emulator > Location, and seach for any desired address and choose the `Set Location` option
 
+
 Compiled @ the branch of [`ver-1.1`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.1)
+
+### 9. Complete the login screen
+- In lib/authentication create the login.dart file
+```dart
+import 'package:flutter/material.dart';
+import 'package:foodie/widgets/custom_text_field.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}): super(key: key);
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();  
+
+  @override
+  Widget build(BuildContext context){
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.all(15),
+              child: Image.asset(
+                "images/seller.png",
+                height: 270,
+              ),
+            ),
+          ),
+          Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                CustomTextField(
+                  data: Icons.email,
+                  controller: emailController,
+                  hintText: "Email",
+                  isObsecre: false,
+                ),
+                CustomTextField(
+                  data: Icons.lock,
+                  controller: passwordController,
+                  hintText: "Password",
+                  isObsecre: true,
+                ),
+              ],
+            )
+          ),
+          ElevatedButton(
+            child: const Text(
+              "Login",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold,),
+            ),
+            style: ElevatedButton.styleFrom(
+              primary: Colors.red,
+              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+            ),
+            onPressed: ()=> print("clicked"),
+          ),
+          const SizedBox(height: 30,),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### 10. Configure firebase
+- Go to console.firebase.google.com and `Add project`
+- Assign a name for the project: Food App
+- Disable: `Enable Google Analytics tor this project` and hit on `Continue`
+- Navigate to Build > Authentication and hit on `Get started`, choose the `Email/Password` sign-in method
+- Navigate to Build > Firestore Database and click on `Create database`, choose the `Start in test mode` option, then `Next` and `Enable`
+  - Go to the `Rules` tab and edit it as:
+    ```CEL
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        match /{documents=**} {
+          allow read, write: if true;
+        }
+      }
+    }
+    ```
+  - Then hit on `Publish`
+
+- Navigate to Build > Storage and go to the `Rules` tab and edit it as:
+  ```CEL
+  rules_version = '2';
+  service firebase.storage {
+    match /b/{bucket}/o {
+      match /allPaths=**} {
+        allow read, write: if request.auth != null;
+      }
+    }
+  }
+  ```
+- Head to Project Overview tab and click on the gear icon, to configure the app
+  - In the Project settings, go to the tab `General` and provide a Support email
+  - In your apps section, choose the Android icon to configure it.
+  - Type the Android package name as stablished at the moment of creating the app in the Step 1: `com.app.foodie`
+  - Choose a nickname like: `Seller app`
+  - Finish with `Register app`
+  - Download the google-services.json and paste it on `foodie/android/app`
+  - Edit the foodie/android/build.gradle and add
+    ```gradle
+    dependencies {
+      classpath 'com.google.gms:google-services:4.3.13'
+      :
+    ```
+  - Edit the foodie/android/app/build.gradle and add at the end
+    ```gradle
+    :
+    apply plugin: 'com.google.gms.google-services'
+    ```
+  - Add firebase features (authentication, storage, cloud and core) into the dependencies to pubspec.yaml
+  
+    ```yaml
+    dependencies:
+      flutter:
+        sdk: flutter
+
+      firebase_core: ^1.20.0
+      firebase_auth: ^3.5.0
+      cloud_firestore: ^3.4.0
+      firebase_storage: ^10.3.3
+      cupertino_icons: ^1.0.2
+      firebase_core: 
+      image_picker: ^0.8.5+3
+      geolocator: ^9.0.1
+      geocoding: ^2.0.4
+    ```
+  
+### 10. Udate the firebase package to main.dart
+
+- In lib/main.dart
+
+  ```dart
+  import 'package:firebase_core/firebase_core.dart';
+  import 'package:flutter/material.dart';
+  import 'package:foodie/splashScreen/splash_screen.dart';
+
+  Future<void> main() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp();
+    runApp(const MyApp());
+  }
+
+  class MyApp extends StatelessWidget {
+    const MyApp({Key? key}) : super(key: key);
+
+    @override
+    Widget build(BuildContext context) {
+      return MaterialApp(
+        title: 'Sellers App',
+        theme: ThemeData(
+
+          primarySwatch: Colors.blue,
+        ),
+        home: const MySplashScreen(), //const MyHomePage(title: 'Flutter Demo Home Page'),
+      );
+    }
+  }
+  ```
+
+### 11. Create a error message widget
+
+- In lib/widgets/ create the error_dialog.dart file that can show alert messages with custom inputs
+
+  ```dart
+  import 'package:flutter/material.dart';
+
+  class ErrorDialog extends StatelessWidget{
+    final String? message;
+    ErrorDialog({this.message});
+
+    @override
+    Widget build(BuildContext context) {
+      return AlertDialog(
+        key: key,
+        content: Text(message!),
+        actions: [
+          ElevatedButton(
+            child: const Center(
+              child: Text("ok"),
+            ),
+            style: ElevatedButton.styleFrom(
+              primary: Colors.red,
+            ),
+            onPressed: ()
+            {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    }
+  }
+  ```
+Test 11.1: In the Register tab of the app, click on Sign up without uploading a photo profile. A popup message should appear.
+
+Compiled @ the branch of [`ver-1.2`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.2)
+
+<p align="center">
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.2/sources/step11-test-1.png" width="250">     
+</p>
