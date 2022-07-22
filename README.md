@@ -939,5 +939,6 @@ Test 11.1: In the Register tab of the app, click on Sign up without uploading a 
 Compiled @ the branch of [`ver-1.2`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.2)
 
 <p align="center">
-  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.2/sources/step11-test-1.png" width="250">     
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.2/sources/step11-test-1.png" width="250">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.2/sources/step11-test-1-2.png" width="250">     
 </p>
