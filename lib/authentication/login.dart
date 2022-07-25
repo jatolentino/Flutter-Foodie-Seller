@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:foodie/widgets/custom_text_field.dart';
+import 'package:foodie/widgets/error_dialog.dart';
+import 'package:foodie/widgets/loading_dialog.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foodie/global/global.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:foodie/mainScreens/home_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}): super(key: key);
@@ -14,6 +21,74 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();  
 
+  formValidation(){
+    if(emailController.text.isNotEmpty && passwordController.text.isNotEmpty){
+      //login
+      loginNow();
+    }
+    else
+    {
+      showDialog(
+        context: context,
+        builder: (c){
+          return ErrorDialog( 
+            message: "Please write email/password.",
+          );
+        }
+      );
+    }
+  }
+
+  loginNow() async{
+    showDialog(
+      context: context,
+      builder: (c){
+        return LoadingDialog(
+          message: "Checking Credentials",
+        );
+      }
+    );
+
+    User? currentUser;
+    try {
+    await firebaseAuth.signInWithEmailAndPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    ).then((auth) {
+      currentUser = auth.user;
+    });
+    }  on FirebaseAuthException catch (error) {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (c) {
+          return ErrorDialog(
+            message: error.message.toString(),
+          );
+         }
+      );
+    };
+
+
+    if(currentUser != null){
+      readDataAndSetDataLocally(currentUser!).then((value){
+        Navigator.pop(context);
+        Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));
+      });
+    }
+  }
+  
+  Future readDataAndSetDataLocally(User currentUser) async{
+    await FirebaseFirestore.instance.collection("sellers") //add firebase cloud package
+      .doc(currentUser.uid)
+      .get()
+      .then((snapshot) async {
+        await sharedPreferences!.setString("uid", currentUser.uid);
+        await sharedPreferences!.setString("email", snapshot.data()!["sellerEmail"]);
+        await sharedPreferences!.setString("name", snapshot.data()!["sellerName"]);
+        await sharedPreferences!.setString("photoUrl", snapshot.data()!["sellerAvatarUrl"]);
+      });
+  }
   @override
   Widget build(BuildContext context){
     return SingleChildScrollView(
@@ -57,9 +132,11 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             style: ElevatedButton.styleFrom(
               primary: Colors.red,
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
             ),
-            onPressed: ()=> print("clicked"),
+            onPressed: (){
+              formValidation();
+            },
           ),
           const SizedBox(height: 30,),
         ],

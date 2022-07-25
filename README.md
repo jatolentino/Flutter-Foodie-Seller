@@ -690,13 +690,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   android.enableJetifier=true
   ```
 
-- Change the compliSdkVersion in foodie/android/app/src/build.gradle according to the geolocator suggestion in `https://pub.dev/packages/geolocator`
+- Change the compliSdkVersion in foodie/android/app/build.gradle according to the geolocator suggestion in `https://pub.dev/packages/geolocator`
 
   ```grade
   android {
     //compileSdkVersion flutter.compileSdkVersion
     compileSdkVersion 33
     ndkVersion flutter.ndkVersion
+    :
+    defaultConfig {
+        applicationId "com.app.foodie"
+        minSdkVersion 19
+        targetSdkVersion flutter.targetSdkVersion
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        multiDexEnabled true //multidex works with minsdkversion 19
   ```
 
 - In foodie/andoird/app/src/main/ edit the AndroidManifest.xml
@@ -827,7 +835,7 @@ class _LoginScreenState extends State<LoginScreen> {
   service firebase.storage {
     match /b/{bucket}/o {
       match /allPaths=**} {
-        allow read, write: if request.auth != null;
+        allow read, write: if true
       }
     }
   }
@@ -868,7 +876,7 @@ class _LoginScreenState extends State<LoginScreen> {
       geocoding: ^2.0.4
     ```
   
-### 10. Udate the firebase package to main.dart
+### 10. Update the firebase package to main.dart
 
 - In lib/main.dart
 
@@ -900,7 +908,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
   ```
 
-### 11. Create a error message widget
+### 11. Create an error message widget
 
 - In lib/widgets/ create the error_dialog.dart file that can show alert messages with custom inputs
 
@@ -941,4 +949,578 @@ Compiled @ the branch of [`ver-1.2`](https://github.com/jatolentino/Flutter-Food
 <p align="center">
   <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.2/sources/step11-test-1.png" width="250">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
   <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.2/sources/step11-test-1-2.png" width="250">     
+</p>
+
+### 12. Registering account
+- Adding a loading screen (loading_dialog.dart) in lib/widgets that contains a progress_bar.dart
+  ```dart
+  import 'package:flutter/material.dart';
+  import 'package:foodie/widgets/progress_bar.dart';
+
+  class LoadingDialog extends StatelessWidget{
+    final String? message;
+
+    LoadingDialog({this.message});
+
+    @override
+    Widget build(BuildContext context) {
+      return AlertDialog(
+        key: key,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            circularProgress(),
+            SizedBox(height: 10,),
+            Text(message! + ". Please wait..."),
+          ],
+        ),
+      );
+    }
+  }
+  ```
+
+  For the progress_bar.dart
+  ```dart
+  import 'package:flutter/material.dart';
+  import 'package:foodie/widgets/progress_bar.dart';
+
+  class LoadingDialog extends StatelessWidget{
+    final String? message;
+
+    LoadingDialog({this.message});
+
+    @override
+    Widget build(BuildContext context) {
+      return AlertDialog(
+        key: key,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            circularProgress(),
+            SizedBox(height: 10,),
+            Text(message! + ". Please wait..."),
+          ],
+        ),
+      );
+    }
+  }
+  ```
+
+- Uploading profile pic if there're no errors
+- Registering the account
+- Uploading users info to database
+- Saving data locally for easy access, add `shared_preferences: ^2.0.15` to the pubscpec.yaml file, and add a global.dart file in lib/global containing the `sharedPrefernces`<br>
+
+Edit: lib/authentication/register.dart
+```dart
+import 'package:flutter/material.dart';
+import 'package:foodie/widgets/custom_text_field.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io'; //for adding the file
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:foodie/widgets/error_dialog.dart';
+import 'package:foodie/widgets/loading_dialog.dart';
+import 'package:firebase_storage/firebase_storage.dart' as fStorage;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foodie/mainScreens/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:foodie/global/global.dart';
+
+//errors
+// 1. register with a simple password, fials but profile pic already loaded
+// 2. at deleting the user authentication in the firebase, storage and firestore doesnt get delete
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}): super(key: key);
+
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  TextEditingController locationController = TextEditingController();
+
+
+  XFile? imageXFile;
+  final ImagePicker _picker = ImagePicker();
+
+  Position? position;
+  List<Placemark>? placeMarks;
+
+  String sellerImageUrl = "";
+  String completeAddress = "";
+
+  Future<void> _getImage() async{
+    imageXFile = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      imageXFile;
+    });
+  }
+
+  LocationPermission? permission;
+
+  getCurrentLocation() async{ //add geocoidng and geolocator packages
+    permission = await Geolocator.requestPermission();
+
+    Position newPosition = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    position = newPosition;
+    placeMarks = await placemarkFromCoordinates(
+      position!.latitude,
+      position!.longitude,
+    );
+    Placemark pMark = placeMarks![0];
+    completeAddress = '${pMark.subThoroughfare} ${pMark.thoroughfare}, ${pMark.subLocality} ${pMark.locality}, ${pMark.subAdministrativeArea}, ${pMark.administrativeArea} ${pMark.postalCode}, ${pMark.country}';
+    locationController.text = completeAddress;
+  }
+
+  Future<void> formValidation() async{
+    if (imageXFile == null){
+      showDialog(
+        context: context,
+        builder: (c){
+          return ErrorDialog(
+            message: "Please select an image",
+          );
+        }
+      );
+    }
+    else{
+      if(passwordController.text == confirmPasswordController.text){
+
+        if(confirmPasswordController.text.isNotEmpty && emailController.text.isNotEmpty && 
+        nameController.text.isNotEmpty && phoneController.text.isNotEmpty && 
+        locationController.text.isNotEmpty){
+          showDialog(
+            context: context,
+            builder: (c){
+              return LoadingDialog(
+                message: "Registering Account",
+              );
+            }
+          );
+
+          
+          String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+          fStorage.Reference reference = fStorage.FirebaseStorage.instance.ref().child("sellers").child(fileName);
+          fStorage.UploadTask uploadTask = reference.putFile(File(imageXFile!.path));
+          fStorage.TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
+          await taskSnapshot.ref.getDownloadURL().then((url) {
+            sellerImageUrl = url;
+            // finished the signup and proceed to mainScreen
+            authenticateSellerAndSignUp();
+          });
+        }
+        
+        else{
+          showDialog(
+            context: context,
+            builder: (c) {
+              return ErrorDialog(
+                message: "Please complete your information in every field",
+              );
+            }
+          );
+        }
+      }
+      else
+      {
+        showDialog(
+          context: context,
+          builder: (c) {
+            return ErrorDialog(
+              message: "Password does not match, please try again",
+            );
+          }
+        );
+      }
+    }
+  }
+
+  void authenticateSellerAndSignUp() async{
+    User? currentUser; 
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    try {
+    
+    await firebaseAuth.createUserWithEmailAndPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    ).then((auth) {
+      currentUser = auth.user;
+    });
+    }  on FirebaseAuthException catch (error) {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (c) {
+          return ErrorDialog(
+            message: error.message.toString(),
+          );
+         }
+      );
+    };
+
+    if(currentUser !=null){
+      saveDataToFirestore(currentUser!).then((value){
+        Navigator.pop(context);
+        Route newRoute = MaterialPageRoute(builder: (c) => HomeScreen());
+        Navigator.pushReplacement(context, newRoute);
+      });
+    }
+  }
+
+  Future saveDataToFirestore(User currentUser) async{
+    FirebaseFirestore.instance.collection("sellers").doc(currentUser.uid).set({
+      "sellerUID": currentUser.uid,
+      "sellerEmail": currentUser.email,
+      "sellerName": nameController.text.trim(),
+      "sellerAvatarUrl": sellerImageUrl,
+      "phone": phoneController.text.trim(),
+      "address": completeAddress,
+      "status": "aproved",
+      "earnings": 0.0,
+      "lat": position!.latitude,
+      "long": position!.longitude,
+    });
+
+    //Saving the data locally on the user's phone
+    SharedPreferences? sharedPreferences = await SharedPreferences.getInstance();
+    //sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setString("uid", currentUser.uid);
+    await sharedPreferences.setString("email", currentUser.email.toString());
+    await sharedPreferences.setString("name", nameController.text.trim());
+    await sharedPreferences.setString("photoUrl", sellerImageUrl);
+  }
+
+  @override
+  :
+  :
+```
+- Adding a splash_screen.dart to redirect users to home_screen.dart if they're signed in on to the authentication screen if they were not logged in successfully
+```dart
+import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:foodie/authentication/auth_screen.dart';
+import 'package:foodie/mainScreens/home_screen.dart';
+import 'package:foodie/global/global.dart';
+
+class MySplashScreen extends StatefulWidget {
+  const MySplashScreen({Key? key}): super(key: key);
+
+  @override
+  _MySplashScreenState createState() => _MySplashScreenState();
+}
+
+class _MySplashScreenState extends State<MySplashScreen> {
+
+  startTimer(){
+    Timer(const Duration(seconds: 4), () async {
+      //if seller is logged in
+      if(firebaseAuth.currentUser != null){
+        Navigator.push(context, MaterialPageRoute(builder: (c) => const HomeScreen()));
+      }
+      //if seller is not logged in
+      else{
+        Navigator.push(context, MaterialPageRoute(builder: (c) => const AuthScreen()));
+      }
+
+      Navigator.push(context, MaterialPageRoute(builder: (c)=> const AuthScreen()));
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startTimer();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      child: Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset("images/splash.jpg"),
+              const SizedBox(height: 10,),
+              const Padding(
+                padding: EdgeInsets.all(18.0),
+                child: Text(
+                  "Sell Food Online",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 40,
+                    fontFamily: "Signatra",
+                    letterSpacing: 3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+### 13. Implement the home and login screens
+
+- Create a home_screen.dart in lib/mainScreen
+```dart
+import 'package:flutter/material.dart';
+import 'package:foodie/global/global.dart';
+import 'package:foodie/authentication/auth_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient( //const linearGradient
+              colors: [
+                Colors.pink.shade400,
+                Colors.red.shade400,
+              ],
+              begin: const FractionalOffset(0.0, 0.5),
+              end: const FractionalOffset(1.0, 0.5),
+              stops: [0.0, 1.0],
+              tileMode: TileMode.clamp,
+            )
+          ),
+        ),
+        title: Text(
+          sharedPreferences!.getString("name")!,
+        ),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
+      body: Center(
+        child: ElevatedButton(
+          child: Text("Logout"),
+          style: ElevatedButton.styleFrom(
+            primary: Colors.cyan,
+          ),
+          onPressed: (){
+            firebaseAuth.signOut().then((value){
+              Navigator.push(context, MaterialPageRoute(builder: (c)=> AuthScreen()));
+            });
+            
+          },
+        )
+      )
+    );
+  }
+}
+```
+
+- Editing main.dart to initialize the splash_screen
+```dart
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:foodie/splashScreen/splash_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:foodie/global/global.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  sharedPreferences = await SharedPreferences.getInstance();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Sellers App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MySplashScreen(), //const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+}
+```
+
+- Editing the login.dart file
+```dart
+import 'package:flutter/material.dart';
+import 'package:foodie/widgets/custom_text_field.dart';
+import 'package:foodie/widgets/error_dialog.dart';
+import 'package:foodie/widgets/loading_dialog.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foodie/global/global.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:foodie/mainScreens/home_screen.dart';
+
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}): super(key: key);
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();  
+
+  formValidation(){
+    if(emailController.text.isNotEmpty && passwordController.text.isNotEmpty){
+      //login
+      loginNow();
+    }
+    else
+    {
+      showDialog(
+        context: context,
+        builder: (c){
+          return ErrorDialog( 
+            message: "Please write email/password.",
+          );
+        }
+      );
+    }
+  }
+
+  loginNow() async{
+    showDialog(
+      context: context,
+      builder: (c){
+        return LoadingDialog(
+          message: "Checking Credentials",
+        );
+      }
+    );
+
+    User? currentUser;
+    try {
+    await firebaseAuth.signInWithEmailAndPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    ).then((auth) {
+      currentUser = auth.user;
+    });
+    }  on FirebaseAuthException catch (error) {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (c) {
+          return ErrorDialog(
+            message: error.message.toString(),
+          );
+         }
+      );
+    };
+
+
+    if(currentUser != null){
+      readDataAndSetDataLocally(currentUser!).then((value){
+        Navigator.pop(context);
+        Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));
+      });
+    }
+  }
+  
+  Future readDataAndSetDataLocally(User currentUser) async{
+    await FirebaseFirestore.instance.collection("sellers") //add firebase cloud package
+      .doc(currentUser.uid)
+      .get()
+      .then((snapshot) async {
+        await sharedPreferences!.setString("uid", currentUser.uid);
+        await sharedPreferences!.setString("email", snapshot.data()!["sellerEmail"]);
+        await sharedPreferences!.setString("name", snapshot.data()!["sellerName"]);
+        await sharedPreferences!.setString("photoUrl", snapshot.data()!["sellerAvatarUrl"]);
+      });
+  }
+  @override
+  Widget build(BuildContext context){
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.all(15),
+              child: Image.asset(
+                "images/seller.png",
+                height: 270,
+              ),
+            ),
+          ),
+          Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                CustomTextField(
+                  data: Icons.email,
+                  controller: emailController,
+                  hintText: "Email",
+                  isObsecre: false,
+                ),
+                CustomTextField(
+                  data: Icons.lock,
+                  controller: passwordController,
+                  hintText: "Password",
+                  isObsecre: true,
+                ),
+              ],
+            )
+          ),
+          const SizedBox(height: 30,),
+          ElevatedButton(
+            child: const Text(
+              "Login",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold,),
+            ),
+            style: ElevatedButton.styleFrom(
+              primary: Colors.red,
+              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+            ),
+            onPressed: (){
+              formValidation();
+            },
+          ),
+          const SizedBox(height: 30,),
+        ],
+      ),
+    );
+  }
+}
+```
+
+Test 13.1: Compiled @ the branch of [`ver-1.3`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.3)
+
+<p align="center">
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1.jpeg" width="250">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-2.png" width="250">     <br>
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-3.png" width="250">
 </p>

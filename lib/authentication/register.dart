@@ -5,6 +5,17 @@ import 'dart:io'; //for adding the file
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:foodie/widgets/error_dialog.dart';
+import 'package:foodie/widgets/loading_dialog.dart';
+import 'package:firebase_storage/firebase_storage.dart' as fStorage;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foodie/mainScreens/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:foodie/global/global.dart';
+
+//errors
+// 1. register with a simple password, fials but profile pic already loaded
+// 2. at deleting the user authentication in the firebase, storage and firestore doesnt get delete
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}): super(key: key);
@@ -29,6 +40,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Position? position;
   List<Placemark>? placeMarks;
 
+  String sellerImageUrl = "";
+  String completeAddress = "";
+
   Future<void> _getImage() async{
     imageXFile = await _picker.pickImage(source: ImageSource.gallery);
     setState(() {
@@ -50,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       position!.longitude,
     );
     Placemark pMark = placeMarks![0];
-    String completeAddress = '${pMark.subThoroughfare} ${pMark.thoroughfare}, ${pMark.subLocality} ${pMark.locality}, ${pMark.subAdministrativeArea}, ${pMark.administrativeArea} ${pMark.postalCode}, ${pMark.country}';
+    completeAddress = '${pMark.subThoroughfare} ${pMark.thoroughfare}, ${pMark.subLocality} ${pMark.locality}, ${pMark.subAdministrativeArea}, ${pMark.administrativeArea} ${pMark.postalCode}, ${pMark.country}';
     locationController.text = completeAddress;
   }
 
@@ -65,6 +79,111 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       );
     }
+    else{
+      if(passwordController.text == confirmPasswordController.text){
+
+        if(confirmPasswordController.text.isNotEmpty && emailController.text.isNotEmpty && 
+        nameController.text.isNotEmpty && phoneController.text.isNotEmpty && 
+        locationController.text.isNotEmpty){
+          showDialog(
+            context: context,
+            builder: (c){
+              return LoadingDialog(
+                message: "Registering Account",
+              );
+            }
+          );
+
+          
+          String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+          fStorage.Reference reference = fStorage.FirebaseStorage.instance.ref().child("sellers").child(fileName);
+          fStorage.UploadTask uploadTask = reference.putFile(File(imageXFile!.path));
+          fStorage.TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
+          await taskSnapshot.ref.getDownloadURL().then((url) {
+            sellerImageUrl = url;
+            // finished the signup and proceed to mainScreen
+            authenticateSellerAndSignUp();
+          });
+        }
+        
+        else{
+          showDialog(
+            context: context,
+            builder: (c) {
+              return ErrorDialog(
+                message: "Please complete your information in every field",
+              );
+            }
+          );
+        }
+      }
+      else
+      {
+        showDialog(
+          context: context,
+          builder: (c) {
+            return ErrorDialog(
+              message: "Password does not match, please try again",
+            );
+          }
+        );
+      }
+    }
+  }
+
+  void authenticateSellerAndSignUp() async{
+    User? currentUser; 
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    try {
+    
+    await firebaseAuth.createUserWithEmailAndPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    ).then((auth) {
+      currentUser = auth.user;
+    });
+    }  on FirebaseAuthException catch (error) {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (c) {
+          return ErrorDialog(
+            message: error.message.toString(),
+          );
+         }
+      );
+    };
+
+    if(currentUser !=null){
+      saveDataToFirestore(currentUser!).then((value){
+        Navigator.pop(context);
+        Route newRoute = MaterialPageRoute(builder: (c) => HomeScreen());
+        Navigator.pushReplacement(context, newRoute);
+      });
+    }
+  }
+
+  Future saveDataToFirestore(User currentUser) async{
+    FirebaseFirestore.instance.collection("sellers").doc(currentUser.uid).set({
+      "sellerUID": currentUser.uid,
+      "sellerEmail": currentUser.email,
+      "sellerName": nameController.text.trim(),
+      "sellerAvatarUrl": sellerImageUrl,
+      "phone": phoneController.text.trim(),
+      "address": completeAddress,
+      "status": "aproved",
+      "earnings": 0.0,
+      "lat": position!.latitude,
+      "long": position!.longitude,
+    });
+
+    //Saving the data locally on the user's phone
+    SharedPreferences? sharedPreferences = await SharedPreferences.getInstance();
+    //sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setString("uid", currentUser.uid);
+    await sharedPreferences.setString("email", currentUser.email.toString());
+    await sharedPreferences.setString("name", nameController.text.trim());
+    await sharedPreferences.setString("photoUrl", sellerImageUrl);
   }
 
   @override
@@ -118,7 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     data: Icons.lock,
                     controller: confirmPasswordController,
                     hintText: "Confirm Password",
-                    isObsecre: false,
+                    isObsecre: true,
                   ),
                   CustomTextField(
                     data: Icons.phone,
