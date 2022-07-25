@@ -1520,7 +1520,7 @@ class _LoginScreenState extends State<LoginScreen> {
 Test 13.1: Compiled @ the branch of [`ver-1.3`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.3)
 
 <p align="center">
-  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1.jpeg" width="250">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-2.png" width="250">     <br>
-  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-3.png" width="250">
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-1.jpeg" width="200">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-2.png" width="200">     <br>
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-3.png" width="500">
 </p>
