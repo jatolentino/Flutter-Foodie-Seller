@@ -1521,6 +1521,6 @@ Test 13.1: Compiled @ the branch of [`ver-1.3`](https://github.com/jatolentino/F
 
 <p align="center">
   <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-1.jpeg" width="200">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-2.png" width="195">     <br>
-  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-3.png" width="500">
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-2.png" width="195">     <br><br>
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-3.png" width="700">
 </p>
