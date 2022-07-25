@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         title: Text(
-          sharedPreferences!.getString("name")!,
+          "Welcome " + sharedPreferences!.getString("name")! +"!",
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ElevatedButton(
           child: Text("Logout"),
           style: ElevatedButton.styleFrom(
-            primary: Colors.cyan,
+            primary: Colors.red,
           ),
           onPressed: (){
             firebaseAuth.signOut().then((value){
