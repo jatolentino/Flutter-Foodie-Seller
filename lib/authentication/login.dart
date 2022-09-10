@@ -77,7 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
     //     Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));
     //   });
     // }
-
     if(currentUser != null){ //After successful login send rider to the home screen
       readDataAndSetDataLocally(currentUser!);//.then((value){
       //readDataAndSetDataLocally(currentUser!).then((value){
@@ -99,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
   //     });
   // }
 
-  //This part has been modified by my own
   Future readDataAndSetDataLocally(User currentUser) async{
     await FirebaseFirestore.instance.collection("sellers") //checking if the user that is login is the riders collection //add firebase cloud package
       .doc(currentUser.uid)
@@ -119,22 +117,20 @@ class _LoginScreenState extends State<LoginScreen> {
         else
         {
           firebaseAuth.signOut();
-          //sharedPreferences!.clear(); 
+          sharedPreferences!.clear(); //added this, once you logout, sharedpreferences or cache data will be deleted
           Navigator.pop(context);
           Navigator.push(context, MaterialPageRoute(builder: (c)=> const AuthScreen()));
           showDialog(
             context: context,
             builder: (c) {
               return ErrorDialog(
-                message: "User not identified",
+                message: "User not identified"
               );
             }
           );
         }
       });
   }
-
-
   @override
   Widget build(BuildContext context){
     return SingleChildScrollView(
