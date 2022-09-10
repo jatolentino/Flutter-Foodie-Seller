@@ -44,41 +44,56 @@ This is the final result of the projected obtained @ the step 11 that belongs to
 - Add the assets and images folder to the root of the project (`/foodie/`)
 - Configure the pubspec.yaml file as:
     ```yaml
-    name: foodie
+    name: foodie_riders
     description: A new Flutter project.
+    publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
     version: 1.0.0+1
+
     environment:
-    sdk: ">=2.17.5 <3.0.0"
+      sdk: ">=2.17.5 <3.0.0"
+
 
     dependencies:
-        flutter:
-            sdk: flutter
+      flutter:
+        sdk: flutter
 
-    cupertino_icons: ^1.0.2
-    image_picker: ^0.8.5+3
+      cupertino_icons: ^1.0.2
+      firebase_core: ^1.20.0
+      firebase_auth: ^3.5.0
+      cloud_firestore: ^3.4.0
+      firebase_storage: ^10.3.3
+      image_picker: ^0.8.5+3
+      geolocator: ^9.0.1
+      geocoding: ^2.0.4
+      shared_preferences: ^2.0.15
 
     dev_dependencies:
-        flutter_test:
-            sdk: flutter
-        flutter_lints: ^2.0.0
+      flutter_test:
+        sdk: flutter
+
+      flutter_lints: ^2.0.0
 
     flutter:
-        uses-material-design: true
-        assets:
-            - images/
-        fonts:
-            - family: Bebas
-                fonts:
-                    - asset: assets/fonts/BebasNeue-Regular.ttf
-            - family: Lobster
-                fonts:
-                    - asset: assets/fonts/Lobster-Regular.ttf
-            - family: Signatra
-                fonts:
-                    - asset: assets/fonts/Signatra.ttf
-            - family: Varela
-                fonts:
-                    - asset: assets/fonts/VarelaRound-Regular.ttf 
+
+      uses-material-design: true
+
+      assets:
+        - images/
+
+      fonts:
+        - family: Bebas
+          fonts:
+            - asset: assets/fonts/BebasNeue-Regular.ttf
+        - family: Lobster
+          fonts:
+            - asset: assets/fonts/Lobster-Regular.ttf
+        - family: Signatra
+          fonts:
+            - asset: assets/fonts/Signatra.ttf
+        - family: Varela
+          fonts:
+            - asset: assets/fonts/VarelaRound-Regular.ttf 
     ```
 
 ### 2. Edit the lib/main.dart file

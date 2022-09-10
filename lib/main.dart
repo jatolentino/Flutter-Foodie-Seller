@@ -6,7 +6,6 @@ import 'package:foodie/global/global.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   sharedPreferences = await SharedPreferences.getInstance();
   await Firebase.initializeApp();
   runApp(const MyApp());
