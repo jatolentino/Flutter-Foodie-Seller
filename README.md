@@ -1385,6 +1385,7 @@ class MyApp extends StatelessWidget {
 - Editing the login.dart file
 ```dart
 import 'package:flutter/material.dart';
+import 'package:foodie/authentication/auth_screen.dart';
 import 'package:foodie/widgets/custom_text_field.dart';
 import 'package:foodie/widgets/error_dialog.dart';
 import 'package:foodie/widgets/loading_dialog.dart';
@@ -1455,24 +1456,64 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     };
 
-
-    if(currentUser != null){
-      readDataAndSetDataLocally(currentUser!).then((value){
-        Navigator.pop(context);
-        Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));
-      });
+    // if(currentUser != null){
+    //   readDataAndSetDataLocally(currentUser!).then((value){
+    //     Navigator.pop(context);
+    //     Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));
+    //   });
+    // }
+    if(currentUser != null){ //After successful login send rider to the home screen
+      readDataAndSetDataLocally(currentUser!);//.then((value){
+      //readDataAndSetDataLocally(currentUser!).then((value){
+        //Navigator.pop(context);
+        //Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen())); min 45 (vid 22-26)
+      //});
     }
   }
   
+  // Future readDataAndSetDataLocally(User currentUser) async{
+  //   await FirebaseFirestore.instance.collection("sellers") //add firebase cloud package
+  //     .doc(currentUser.uid)
+  //     .get()
+  //     .then((snapshot) async {
+  //       await sharedPreferences!.setString("uid", currentUser.uid);
+  //       await sharedPreferences!.setString("email", snapshot.data()!["sellerEmail"]);
+  //       await sharedPreferences!.setString("name", snapshot.data()!["sellerName"]);
+  //       await sharedPreferences!.setString("photoUrl", snapshot.data()!["sellerAvatarUrl"]);
+  //     });
+  // }
+
   Future readDataAndSetDataLocally(User currentUser) async{
-    await FirebaseFirestore.instance.collection("sellers") //add firebase cloud package
+    await FirebaseFirestore.instance.collection("sellers") //checking if the user that is login is the riders collection //add firebase cloud package
       .doc(currentUser.uid)
       .get()
       .then((snapshot) async {
-        await sharedPreferences!.setString("uid", currentUser.uid);
-        await sharedPreferences!.setString("email", snapshot.data()!["sellerEmail"]);
-        await sharedPreferences!.setString("name", snapshot.data()!["sellerName"]);
-        await sharedPreferences!.setString("photoUrl", snapshot.data()!["sellerAvatarUrl"]);
+        if(snapshot.exists)
+        {
+          await sharedPreferences!.setString("uid", currentUser.uid);
+          await sharedPreferences!.setString("email", snapshot.data()!["sellerEmail"]);
+          await sharedPreferences!.setString("name", snapshot.data()!["sellerName"]);
+          await sharedPreferences!.setString("photoUrl", snapshot.data()!["sellerAvatarUrl"]);
+          // ignore: use_build_context_synchronously
+          Navigator.pop(context);
+          // ignore: use_build_context_synchronously
+          Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));
+        }
+        else
+        {
+          firebaseAuth.signOut();
+          sharedPreferences!.clear(); //added this, once you logout, sharedpreferences or cache data will be deleted
+          Navigator.pop(context);
+          Navigator.push(context, MaterialPageRoute(builder: (c)=> const AuthScreen()));
+          showDialog(
+            context: context,
+            builder: (c) {
+              return ErrorDialog(
+                message: "User not identified"
+              );
+            }
+          );
+        }
       });
   }
   @override
