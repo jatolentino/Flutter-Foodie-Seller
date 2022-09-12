@@ -2046,10 +2046,10 @@ Add the progress_bar.dart to display a loading icon (linear or circular)
   Test 15.1: Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)
 
   <p align="center">
-    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-1.jpeg" width="100"> &nbsp;
-    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-2.jpeg" width="100"> &nbsp;
-    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-3.jpeg" width="100"> &nbsp;
-    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-4.jpeg" width="100"> &nbsp;
-    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-5.jpeg" width="100"> &nbsp; <br/>
-    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-6.jpeg" width="400">
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-1.jpeg" width="150"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-2.jpeg" width="150"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-3.jpeg" width="150"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-4.jpeg" width="150"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-5.jpeg" width="150"> &nbsp; <br/>
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-6.jpeg" width="600">
   </p>
