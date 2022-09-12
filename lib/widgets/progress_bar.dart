@@ -6,7 +6,19 @@ circularProgress(){
     padding: const EdgeInsets.only(top: 12),
     child: const CircularProgressIndicator(
       valueColor: AlwaysStoppedAnimation(
-        Colors.amber,
+        Colors.red,
+      ),
+    ),
+  );
+}
+
+linearProgress(){
+  return Container(
+    alignment: Alignment.center,
+    padding: const EdgeInsets.only(top: 12),
+    child: const LinearProgressIndicator(
+      valueColor: AlwaysStoppedAnimation(
+        Colors.red,
       ),
     ),
   );
