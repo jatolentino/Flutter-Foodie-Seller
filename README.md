@@ -1583,3 +1583,1148 @@ Test 13.1: Compiled @ the branch of [`ver-1.3`](https://github.com/jatolentino/F
   <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-2.png" width="195">     <br><br>
   <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.3/sources/step13-test-1-3.png" width="700">
 </p>
+
+## 14. Add drawer
+- In widgets/my_drawer.dart
+  ```dart
+  import 'package:flutter/material.dart';
+  import 'package:foodie/authentication/auth_screen.dart';
+  import 'package:foodie/global/global.dart';
+
+  class MyDrawer extends StatelessWidget{ //important to set to true in homescreen automaticallyImplyLeading: true, OR SIMPLY DETELETE THE FALSE STATEMENT
+
+    @override
+    Widget build(BuildContext context){
+      return Drawer(
+        child: ListView(
+          children: [ //header drawer
+            Container(
+              padding: EdgeInsets.only(top: 25, bottom: 10),
+              child: Column(
+                children: [
+                  Material(
+                    borderRadius: const BorderRadius.all(Radius.circular(80)),
+                    elevation: 10,
+                    child: Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: Container(
+                        height: 160,
+                        width: 160,
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            sharedPreferences!.getString("photoUrl")!
+                  
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height:10,),
+                  Text(
+                    sharedPreferences!.getString("name")!,
+                    style: TextStyle(color: Colors.black, fontSize: 20, fontFamily: "Train"),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12,),
+            Container(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Column(
+                children: [
+                  // Divider(
+                  //   height: 10,
+                  //   color: Colors.grey,
+                  //   thickness: 2,
+                  // ),
+                  ListTile(
+                    leading: const Icon(Icons.home, color: Colors.red,),
+                    title: const Text(
+                      "Home",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onTap: (){
+
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.monetization_on, color: Colors.red,),
+                    title: const Text(
+                      "My Earnings",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onTap: (){
+                      
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.reorder, color: Colors.red,),
+                    title: const Text(
+                      "New Orders",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onTap: (){
+                      
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.local_shipping, color: Colors.red,),
+                    title: const Text(
+                      "History - Orders",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onTap: (){
+                      
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.exit_to_app, color: Colors.red,),
+                    title: const Text(
+                      "Sign Out",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onTap: (){
+                      firebaseAuth.signOut().then((value){
+                      Navigator.push(context, MaterialPageRoute(builder: (c)=> AuthScreen()));
+                      });
+                    },
+                  ),
+                ],
+              )
+            )
+          ],
+        ),
+      );
+    }
+  }
+  ```
+  Test 14.1: Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)
+
+  <p align="center">
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step14-test-1.jpeg" width="200">
+  </p>
+
+## 15 Add the menus to the seller's dashboard
+- Ceate lib/uploadScreen/menus_upload_screen.dart <br/>
+Allow sellers to upload images from their camera or the gallery with the functions:
+`captureImageWithCamera` and `pickImageFromGallery` <br/>
+Add the progress_bar.dart to display a loading icon (linear or circular)
+  ```dart
+  import 'dart:io';
+  import 'package:flutter/material.dart';
+  import 'package:foodie/global/global.dart';
+  import 'package:foodie/mainScreens/home_screen.dart';
+  import 'package:foodie/widgets/error_dialog.dart';
+  import 'package:foodie/widgets/progress_bar.dart';
+  import 'package:image_picker/image_picker.dart';
+  import 'package:cloud_firestore/cloud_firestore.dart';
+  import 'package:firebase_auth/firebase_auth.dart';
+  import 'package:firebase_storage/firebase_storage.dart' as storageRef;
+
+  class MenusUploadScreen extends StatefulWidget {
+    const MenusUploadScreen({Key? key}) : super(key: key);
+
+    @override
+    _MenusUploadScreenState createState() => _MenusUploadScreenState();
+  }
+
+  class _MenusUploadScreenState extends State<MenusUploadScreen> {
+
+    XFile? imageXFile; //package image_picker
+    final ImagePicker _picker = ImagePicker();
+    TextEditingController shortInfoController = TextEditingController();
+    TextEditingController titleController = TextEditingController();
+
+    bool uploading = false;
+    String uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
+
+    defaultScreen(){
+      return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient( //const linearGradient
+                colors: [
+                  Colors.pink.shade400,
+                  Colors.red.shade400,
+                ],
+                begin: const FractionalOffset(0.0, 0.5),
+                end: const FractionalOffset(1.0, 0.5),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp,
+              )
+            ),
+          ),
+          title: const Text(
+            "Add New Menu",
+            style: const TextStyle(fontSize: 25, fontFamily: "Lobster"),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back,),
+            onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));          
+            },
+          ),
+        ),
+        body: Container(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.shop_two, color: Colors.grey, size: 200.0,),
+                ElevatedButton(
+                  child: const Text(
+                    "Add New Menu",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  onPressed: (){
+                    takeImage(context);
+                  },
+                ),
+              ],
+            )
+          )
+        )
+      );
+    }
+    
+    takeImage(mContext){
+      return showDialog(
+        context: mContext,
+        builder: (context)
+        {
+          return SimpleDialog(
+            title: const Text("Menu Image", style: TextStyle(color: Colors.red, fontWeight:FontWeight.bold),),
+            children: [
+              SimpleDialogOption(
+                child: const Text(
+                  "Capture with Camera",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                onPressed: captureImageWithCamera,
+              ),
+              SimpleDialogOption(
+                child: const Text(
+                  "Select from Gallery",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                onPressed: pickImageFromGallery,
+              ),
+              SimpleDialogOption(
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: ()=> Navigator.pop(context),
+              ),
+            ]
+          );
+        },
+      );
+    }
+    
+    captureImageWithCamera() async{
+      Navigator.pop(context);
+      imageXFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxHeight: 720,
+        maxWidth: 1280,
+      );
+      setState(() {
+        imageXFile;
+      });
+    }
+
+    pickImageFromGallery() async{
+      Navigator.pop(context);
+      imageXFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxHeight: 720,
+        maxWidth: 1280,
+      );
+      setState(() {
+        imageXFile;
+      });
+    }
+    
+    menusUploadFormScreen(){
+      return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient( //const linearGradient
+                colors: [
+                  Colors.pink.shade400,
+                  Colors.red.shade400,
+                ],
+                begin: const FractionalOffset(0.0, 0.5),
+                end: const FractionalOffset(1.0, 0.5),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp,
+              )
+            ),
+          ),
+          title: const Text(
+            "Uploading New Menu",
+            style: TextStyle(fontSize: 25, fontFamily: "Lobster"),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back,),
+            onPressed: (){
+              //Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));          
+              clearMenusUploadForm();
+            },
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                "Add",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  fontFamily: "Varela",
+                  letterSpacing: 1,
+                ),
+              ),
+              onPressed: uploading ? null : ()=> validateUploadForm(),
+            ),
+          ],
+        ),
+        body: ListView(
+          children: [
+            const SizedBox(height: 30,),
+            uploading == true ? linearProgress() : const Text(""), ////////////
+            Container(
+              height: MediaQuery.of(context).size.width * 0.4,
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: 16/9,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20.0), //Added a radius
+                      image: DecorationImage(
+                        image: FileImage(
+                          File(imageXFile!.path) // import 'dart:io';
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                )
+              )
+            ),
+            const SizedBox(height: 30,),
+            ListTile(
+              leading: const Icon(Icons.title, color: Colors.red),
+              title: Container(
+                width: 250,
+                child: TextField(
+                  style: const TextStyle(color: Colors.black),
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    hintText: "Menu title",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.perm_device_information, color: Colors.red),
+              title: Container(
+                width: 250,
+                child: TextField(
+                  style: const TextStyle(color: Colors.black),
+                  controller: shortInfoController,
+                  decoration: const InputDecoration(
+                    hintText: "Menu info",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+          ]
+        ),
+      );
+    }
+
+    clearMenusUploadForm(){
+      setState((){
+        shortInfoController.clear();
+        titleController.clear();
+        imageXFile = null;
+      });
+    }
+
+    validateUploadForm() async{
+      if(imageXFile != null){
+        if(shortInfoController.text.isNotEmpty && titleController.text.isNotEmpty){
+          setState(() {
+            uploading = true;
+          });
+          // upload image and save info to the firebase
+          String downloadUrl = await uploadImage(File(imageXFile!.path));
+          saveInfo(downloadUrl);
+        }
+        else{
+          showDialog(
+            context: context,
+            builder: (c){
+              return ErrorDialog(
+                message: "Please write a title and information for the menu",
+              );
+            }
+          );
+        }
+      }
+      else{
+        showDialog(
+          context: context,
+          builder: (c){
+            return ErrorDialog(
+              message: "Please pick an image for the menu"
+            );
+          }
+        );
+
+      }
+
+
+    }
+
+    saveInfo(String downloadUrl){
+      final ref = FirebaseFirestore.instance
+        .collection("sellers")
+        .doc(sharedPreferences!.getString("uid"))
+        .collection("menus");
+      
+      ref.doc(uniqueIdName).set({
+        "menuID": uniqueIdName,
+        "sellerUID": sharedPreferences!.getString(""),
+        "menuInfo": shortInfoController.text.toString(),
+        "menuTitle": titleController.text.toString(),
+        "publishedDate": DateTime.now(),
+        "status": "available",
+        "thumbnailUrl": downloadUrl,
+      });
+
+      clearMenusUploadForm();
+      setState((){
+        uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
+        uploading = false;
+      });
+    }
+    uploadImage(mImageFile) async{
+      storageRef.Reference reference = storageRef.FirebaseStorage
+        .instance
+        .ref()
+        .child("menus");
+      storageRef.UploadTask uploadTask = reference.child(uniqueIdName + ".jpg").putFile(mImageFile);
+      storageRef.TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
+      String downloadURL = await taskSnapshot.ref.getDownloadURL();
+      return downloadURL;
+    }
+    @override
+    Widget build(BuildContext context) {
+      return imageXFile == null ? defaultScreen() : menusUploadFormScreen();
+    }
+  }
+  ```
+  Test 15.1: Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)
+
+  <p align="center">
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-1.jpeg" width="130"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-2.jpeg" width="130"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-3.jpeg" width="130"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-4.jpeg" width="130"> &nbsp;
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-5.jpeg" width="130"> &nbsp; <br/>
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step15-test-6.jpeg" width="600">
+  </p>
+
+## 16. Add the menus of the seller in the dashboard (home_screen)
+  - Create the class menus and assign the variables that will hold the parameters of the database later
+  <br/> Create the model/menus.dart
+  ```dart
+  import 'package:cloud_firestore/cloud_firestore.dart';
+
+  class Menus{
+    String? menuID;
+    String? sellerUID;
+    String? menuTitle;
+    String? menuInfo;
+    Timestamp? publishedDate;
+    String? thumbnailUrl;
+    String? status;
+
+    Menus({
+      this.menuID,
+      this.sellerUID,
+      this.menuTitle,
+      this.menuInfo,
+      this.publishedDate,
+      this.thumbnailUrl,
+      this.status,
+    });
+
+    Menus.fromJson(Map<String, dynamic> json){
+      menuID = json["menuID"];
+      sellerUID = json["sellerUID"];
+      menuTitle = json["menuTitle"];
+      menuInfo = json["menuInfo"];
+      publishedDate = json["publishedDate"];
+      thumbnailUrl = json["thumbnailUrl"];
+      status = json["status"];
+    }
+
+    Map<String, dynamic> toJson(){
+      final Map<String, dynamic> data = Map<String, dynamic>();
+      data["menuID"] = menuID;
+      data["sellerUID"] = sellerUID;
+      data["menuTitle"] = menuTitle;
+      data["menuInfo"] = menuInfo;
+      data["publishedDate"] = publishedDate;
+      data["thumbnailUrl"] = thumbnailUrl;
+      data["status"] = status;
+
+      return data;
+    }
+  }
+  ```
+
+- Create the info_design.dart widget that will render the database info. Add the widget to the home_scree.dart. Add also the dependency `flutter_staggered.grid.view: ^0.4.1` in the pubspec.yaml
+  ```dart
+  import 'package:flutter/material.dart';
+  import 'package:foodie/mainScreens/itemsScreen.dart';
+  import 'package:foodie/model/menus.dart';
+
+  class InfoDesignWidget extends StatefulWidget{
+    Menus? model;
+    BuildContext? context;
+
+    InfoDesignWidget({this.model, this.context});
+
+    @override
+    _InfoDesignWidgetState createState() => _InfoDesignWidgetState();
+  }
+
+  class _InfoDesignWidgetState extends State<InfoDesignWidget>{
+    @override
+    Widget build(BuildContext context){
+      return InkWell(
+        onTap: (){
+          Navigator.push(context, MaterialPageRoute(builder: (c)=> ItemsScreen(model: widget.model)));
+        },
+        splashColor: Colors.red,
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.35,//280,
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              children: [
+                Divider(
+                  height: 4,
+                  thickness: 3,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 20.0,),
+                // ignore: avoid_unnecessary_containers
+                Container(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Image.network(
+                      widget.model!.thumbnailUrl!,
+                      height: MediaQuery.of(context).size.height * 0.2,
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      fit: BoxFit.cover,
+                      //size: Size.fromRadius(48),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2.0,),
+                Text(
+                  widget.model!.menuTitle!,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontFamily: "Train",
+                  )
+                ),
+                Text(
+                  widget.model!.menuInfo!,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+                Divider(
+                  height: 4,
+                  thickness: 3,
+                  color: Colors.grey[300],
+                ),
+              ],
+            )
+          )
+        )
+      );
+    }
+  }
+  ```
+- Create a text_widget_header.dart to easy use of text header
+  ```dart
+  import 'package:flutter/material.dart';
+
+  class TextWidgetHeader extends SliverPersistentHeaderDelegate{
+
+    String? title;
+    TextWidgetHeader({this.title});
+
+    @override
+    Widget build(BuildContext context, double shrinkOffset, bool overlapsContent,){
+      return InkWell(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            // gradient: LinearGradient(
+            //   colors: [
+            //     Colors.grey, //Colors.pink.shade400,
+            //     Colors.white,
+            //   ],
+            //   begin: FractionalOffset(0.0, 0.0),
+            //   end: FractionalOffset(1.0, 0.0),
+            //   stops: [0.0, 1.0],
+            //   tileMode: TileMode.clamp,
+            // )
+          ),
+          height: 80.0,
+          width: MediaQuery.of(context).size.width,
+          alignment: Alignment.center,
+          child: InkWell(
+            child: Text(
+              title!,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: "Signatra",
+                fontSize: 30,
+                letterSpacing: 2,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    @override
+    // TODO: implement maxExtent
+    double get maxExtent => 50;
+
+    @override
+    double get minExtent => 50;
+
+    @override
+    bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
+  }
+  ```
+
+  Test 16.1 Create a couple of menus for a user to see how it is displayed (Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)) 
+
+  <p align="center">
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step16-test-1.jpeg" width="200">
+  </p>
+
+## 17. Create a widget to upload items (that belong to menus)
+- Create the uploadScreens/items_upload_screen.dart file. The code inserts data to `itemsScreen.dart` and then the latter sends data to the `info_design.dart` which then is added to the `home_scrre.dart`.<br/>
+`itemsUploadScreen` > `itemsScreen` > `infoDesign` > `home_screen`
+  ```dart
+  import 'dart:io';
+  import 'package:flutter/material.dart';
+  import 'package:foodie/global/global.dart';
+  import 'package:foodie/mainScreens/home_screen.dart';
+  import 'package:foodie/model/menus.dart';
+  import 'package:foodie/widgets/error_dialog.dart';
+  import 'package:foodie/widgets/progress_bar.dart';
+  import 'package:image_picker/image_picker.dart';
+  import 'package:cloud_firestore/cloud_firestore.dart';
+  import 'package:firebase_auth/firebase_auth.dart';
+  import 'package:firebase_storage/firebase_storage.dart' as storageRef;
+
+  class ItemsUploadScreen extends StatefulWidget {
+
+    final Menus? model;
+    ItemsUploadScreen({this.model});
+
+    @override
+    _ItemsUploadScreenState createState() => _ItemsUploadScreenState();
+  }
+
+  class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
+
+    XFile? imageXFile; //package image_picker
+    final ImagePicker _picker = ImagePicker();
+    TextEditingController shortInfoController = TextEditingController();
+    TextEditingController titleController = TextEditingController();
+    TextEditingController descriptionController = TextEditingController();
+    TextEditingController priceController = TextEditingController();
+
+    bool uploading = false;
+    String uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
+
+    defaultScreen(){
+      return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient( //const linearGradient
+                colors: [
+                  Colors.pink.shade400,
+                  Colors.red.shade400,
+                ],
+                begin: const FractionalOffset(0.0, 0.5),
+                end: const FractionalOffset(1.0, 0.5),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp,
+              )
+            ),
+          ),
+          title: const Text(
+            "Add New Items",
+            style: const TextStyle(fontSize: 25, fontFamily: "Lobster"),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back,),
+            onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));          
+            },
+          ),
+        ),
+        body: Container(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.shop_two, color: Colors.grey, size: 200.0,),
+                ElevatedButton(
+                  child: const Text(
+                    "Add New Item",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  onPressed: (){
+                    takeImage(context);
+                  },
+                ),
+              ],
+            )
+          )
+        )
+      );
+    }
+    
+    takeImage(mContext){
+      return showDialog(
+        context: mContext,
+        builder: (context)
+        {
+          return SimpleDialog(
+            title: const Text("Item Image", style: TextStyle(color: Colors.red, fontWeight:FontWeight.bold),),
+            children: [
+              SimpleDialogOption(
+                child: const Text(
+                  "Capture with Camera",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                onPressed: captureImageWithCamera,
+              ),
+              SimpleDialogOption(
+                child: const Text(
+                  "Select from Gallery",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                onPressed: pickImageFromGallery,
+              ),
+              SimpleDialogOption(
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: ()=> Navigator.pop(context),
+              ),
+            ]
+          );
+        },
+      );
+    }
+    
+    captureImageWithCamera() async{
+      Navigator.pop(context);
+      imageXFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxHeight: 720,
+        maxWidth: 1280,
+      );
+      setState(() {
+        imageXFile;
+      });
+    }
+
+    pickImageFromGallery() async{
+      Navigator.pop(context);
+      imageXFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxHeight: 720,
+        maxWidth: 1280,
+      );
+      setState(() {
+        imageXFile;
+      });
+    }
+    
+    itemsUploadFormScreen(){
+      return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient( //const linearGradient
+                colors: [
+                  Colors.pink.shade400,
+                  Colors.red.shade400,
+                ],
+                begin: const FractionalOffset(0.0, 0.5),
+                end: const FractionalOffset(1.0, 0.5),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp,
+              )
+            ),
+          ),
+          title: const Text(
+            "Uploading New Item",
+            style: TextStyle(fontSize: 25, fontFamily: "Lobster"),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back,),
+            onPressed: (){
+              //Navigator.push(context, MaterialPageRoute(builder: (c)=> const HomeScreen()));          
+              clearItemsUploadForm();
+            },
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                "Add",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  fontFamily: "Varela",
+                  letterSpacing: 1,
+                ),
+              ),
+              onPressed: uploading ? null : ()=> validateUploadForm(),
+            ),
+          ],
+        ),
+        body: ListView(
+          children: [
+            const SizedBox(height: 30,),
+            uploading == true ? linearProgress() : const Text(""), ////////////
+            Container(
+              height: MediaQuery.of(context).size.width * 0.4,
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: 16/9,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20.0), //Added a radius
+                      image: DecorationImage(
+                        image: FileImage(
+                          File(imageXFile!.path) // import 'dart:io';
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                )
+              )
+            ),
+            const SizedBox(height: 30,),
+            ListTile(
+              leading: const Icon(Icons.title, color: Colors.red),
+              title: Container(
+                width: 250,
+                child: TextField(
+                  style: const TextStyle(color: Colors.black),
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    hintText: "Item title",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.perm_device_information, color: Colors.red),
+              title: Container(
+                width: 250,
+                child: TextField(
+                  style: const TextStyle(color: Colors.black),
+                  controller: shortInfoController,
+                  decoration: const InputDecoration(
+                    hintText: "Item info",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.description, color: Colors.red),
+              title: Container(
+                width: 250,
+                child: TextField(
+                  style: const TextStyle(color: Colors.black),
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    hintText: "Item description",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.monetization_on, color: Colors.red),
+              title: Container(
+                width: 250,
+                child: TextField(
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.black),
+                  controller: priceController,
+                  decoration: const InputDecoration(
+                    hintText: "Item price",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+          ]
+        ),
+      );
+    }
+
+    clearItemsUploadForm(){
+      setState((){
+        shortInfoController.clear();
+        titleController.clear();
+        priceController.clear();
+        descriptionController.clear();
+        imageXFile = null;
+      });
+    }
+
+    validateUploadForm() async{
+      if(imageXFile != null){
+        if(shortInfoController.text.isNotEmpty && titleController.text.isNotEmpty && descriptionController.text.isNotEmpty && priceController.text.isNotEmpty){
+          setState(() {
+            uploading = true;
+          });
+          // upload image and save info to the firebase
+          String downloadUrl = await uploadImage(File(imageXFile!.path));
+          saveInfo(downloadUrl);
+        }
+        else{
+          showDialog(
+            context: context,
+            builder: (c){
+              return ErrorDialog(
+                message: "Please write a title and information for the item",
+              );
+            }
+          );
+        }
+      }
+      else{
+        showDialog(
+          context: context,
+          builder: (c){
+            return ErrorDialog(
+              message: "Please pick an image for the item"
+            );
+          }
+        );
+
+      }
+
+
+    }
+
+    saveInfo(String downloadUrl){
+      final ref = FirebaseFirestore.instance
+        .collection("sellers")
+        .doc(sharedPreferences!.getString("uid"))
+        .collection("menus").doc(widget.model!.menuID) //items as a subcollection of menus
+        .collection("items");
+      
+      ref.doc(uniqueIdName).set({
+        "itemID": uniqueIdName,
+        "menuID": widget.model!.menuID,
+        "sellerUID": sharedPreferences!.getString("uid"),
+        "sellerName": sharedPreferences!.getString("name"),
+        "shortInfo": shortInfoController.text.toString(),
+        "longDescription": descriptionController.text.toString(),
+        "price": int.parse(priceController.text),
+        "title": titleController.text.toString(),
+        "publishedDate": DateTime.now(),
+        "status": "available",
+        "thumbnailUrl": downloadUrl,
+      }).then((value)
+      {
+        final itemsRef = FirebaseFirestore.instance
+          .collection("items");
+        itemsRef.doc(uniqueIdName).set({
+          "itemID": uniqueIdName,
+          "menuID": widget.model!.menuID,
+          "sellerUID": sharedPreferences!.getString("uid"),
+          "sellerName": sharedPreferences!.getString("name"),
+          "shortInfo": shortInfoController.text.toString(),
+          "longDescription": descriptionController.text.toString(),
+          "price": int.parse(priceController.text),
+          "title": titleController.text.toString(),
+          "publishedDate": DateTime.now(),
+          "status": "available",
+          "thumbnailUrl": downloadUrl,
+        });
+      }).then((value){
+        clearItemsUploadForm();
+        setState((){
+          uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
+          uploading = false;
+        });
+      });
+
+      
+    }
+    uploadImage(mImageFile) async{
+      storageRef.Reference reference = storageRef.FirebaseStorage
+        .instance
+        .ref()
+        .child("items");
+      storageRef.UploadTask uploadTask = reference.child(uniqueIdName + ".jpg").putFile(mImageFile);
+      storageRef.TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
+      String downloadURL = await taskSnapshot.ref.getDownloadURL();
+      return downloadURL;
+    }
+    @override
+    Widget build(BuildContext context) {
+      return imageXFile == null ? defaultScreen() : itemsUploadFormScreen();
+    }
+  }
+  ```
+- Create the mainScreens/itemsScreen.dart that will show the items 
+  ```dart
+  import 'package:flutter/material.dart';
+  import 'package:foodie/global/global.dart';
+  import 'package:foodie/model/menus.dart';
+  import 'package:foodie/uploadScreens/items_upload_screen.dart';
+  import 'package:foodie/uploadScreens/menus_upload_screen.dart';
+  import 'package:foodie/widgets/my_drawer.dart';
+  import 'package:foodie/widgets/text_widget_header.dart';
+
+  class ItemsScreen extends StatefulWidget {
+
+    final Menus? model;
+    ItemsScreen({this.model});
+
+    @override
+    _ItemsScreenState createState() => _ItemsScreenState();
+  }
+
+  class _ItemsScreenState extends State<ItemsScreen>
+  {
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient( //const linearGradient
+                colors: [
+                  Colors.pink.shade400,
+                  Colors.red.shade400,
+                ],
+                begin: const FractionalOffset(0.0, 0.5),
+                end: const FractionalOffset(1.0, 0.5),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp,
+              )
+            ),
+          ),
+          title: Text(
+            sharedPreferences!.getString("name")!,
+            style: const TextStyle(fontSize: 25, fontFamily: "Lobster"),
+          ),
+          centerTitle: true,
+          //automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.library_add),
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (c)=> ItemsUploadScreen(model: widget.model)));
+              },
+            ),
+          ],
+        ),
+        drawer: MyDrawer(),
+        body: CustomScrollView(
+          slivers: [
+            SliverPersistentHeader(pinned: true, delegate: TextWidgetHeader(title: "My " + widget.model!.menuTitle.toString() + "'s Items"))
+          ]
+        )
+      );
+    }
+  }
+  ```
+  Test 17.1: Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)
+
+    <p align="center">
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-1.jpeg" width="100"> &nbsp;
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-2.jpeg" width="100"> &nbsp;
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-3.jpeg" width="100"> &nbsp;
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-4.jpeg" width="100"> &nbsp;
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-5.jpeg" width="100"> &nbsp;
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-6.jpeg" width="100"> &nbsp; <br/>
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-7.jpeg" width="600">
+    </p>
+
