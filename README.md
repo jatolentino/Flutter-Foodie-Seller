@@ -2972,6 +2972,6 @@ Add the progress_bar.dart to display a loading icon (linear or circular)
   ```
   Test 18.1: Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)
 
-    <p align="center">
-      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step18-test-1.jpeg" width="600">
-    </p>
+  <p align="center">
+    <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step18-test-1.jpeg" width="600">
+  </p>
