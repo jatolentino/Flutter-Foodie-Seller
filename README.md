@@ -2728,3 +2728,253 @@ Add the progress_bar.dart to display a loading icon (linear or circular)
       <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step17-test-7.jpeg" width="600">
     </p>
 
+## 18. Display the items
+- Workflow:
+  - 18.1 Create the seller item: model/items.dart
+  - 18.2 Create the widget: widngets/items_design.dart 
+  - 18.3 Crete the Screen to display the items: mainScreens/itemsScreen.dart
+
+  Editing the model/items.dart file
+  ```dart
+  import 'package:cloud_firestore/cloud_firestore.dart';
+
+  class Items{
+    String? menuID;
+    String? sellerUID;
+    String? itemID;
+    String? title;
+    String? shortInfo;
+    Timestamp? publishedDate;
+    String? thumbnailUrl;
+    String? longDescription;
+    String? status;
+    int? price;
+
+    Items({
+      this.menuID,
+      this.sellerUID,
+      this.itemID,
+      this.title,
+      this.shortInfo,
+      this.publishedDate,
+      this.thumbnailUrl,
+      this.longDescription,
+      this.status,
+    });
+
+    Items.fromJson(Map<String, dynamic> json){
+      menuID = json['menuID'];
+      sellerUID = json['sellerUID'];
+      itemID = json['itemID'];
+      title = json['title'];
+      shortInfo  = json['shortInfo'];
+      publishedDate  = json['publishedDate'];
+      thumbnailUrl  = json['thumbnailUrl'];
+      longDescription  = json['longDescription'];
+      status  = json['status'];
+      price = json['price'];
+    }
+
+    Map<String, dynamic> toJson(){
+      final Map<String, dynamic> data = Map<String, dynamic>();
+      data['menuID'] = menuID;
+      data['sellerUID'] = sellerUID;
+      data['itemID'] = itemID;
+      data['title'] = title;
+      data['shortInfo'] = shortInfo;
+      data['price'] = price;
+      data['publishedDate'] = publishedDate;
+      data['thumbnailUrl'] = thumbnailUrl;
+      data['longDescription'] = longDescription;
+      data['status'] = status;
+
+      return data;
+    }
+  }
+  ```
+  Editing the widngets/items_design.dart 
+  ```dart
+  import 'package:flutter/material.dart';
+  import 'package:foodie/mainScreens/itemsScreen.dart';
+  import 'package:foodie/model/items.dart';
+  import 'package:foodie/model/menus.dart';
+
+  class ItemsDesignWidget extends StatefulWidget{
+    Items? model;
+    BuildContext? context;
+
+    ItemsDesignWidget({this.model, this.context});
+
+    @override
+    _ItemsDesignWidgetState createState() => _ItemsDesignWidgetState();
+  }
+
+  class _ItemsDesignWidgetState extends State<ItemsDesignWidget>{
+    @override
+    Widget build(BuildContext context){
+      return InkWell(
+        onTap: (){
+          //Navigator.push(context, MaterialPageRoute(builder: (c)=> ItemsScreen(model: widget.model)));
+        },
+        splashColor: Colors.red,
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.35,//280,
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              children: [
+                Divider(
+                  height: 4,
+                  thickness: 3,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 10.0,),
+                Text(
+                  widget.model!.title!,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontFamily: "Train",
+                  )
+                ),
+                // ignore: avoid_unnecessary_containers
+                const SizedBox(height: 10.0,),
+                Container(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Image.network(
+                      widget.model!.thumbnailUrl!,
+                      height: MediaQuery.of(context).size.height * 0.2,
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      fit: BoxFit.cover,
+                      //size: Size.fromRadius(48),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10.0,),
+                Text(
+                  widget.model!.shortInfo!,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+                Divider(
+                  height: 4,
+                  thickness: 3,
+                  color: Colors.grey[300],
+                ),
+              ],
+            )
+          )
+        )
+      );
+    }
+  }
+  ````
+
+  Editing the mainScreens/itemsScreen.dart
+  ```dart
+  import 'package:cloud_firestore/cloud_firestore.dart';
+  import 'package:flutter/material.dart';
+  import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+  import 'package:foodie/global/global.dart';
+  import 'package:foodie/model/items.dart';
+  import 'package:foodie/model/menus.dart';
+  import 'package:foodie/uploadScreens/items_upload_screen.dart';
+  import 'package:foodie/uploadScreens/menus_upload_screen.dart';
+  import 'package:foodie/widgets/items_design.dart';
+  import 'package:foodie/widgets/my_drawer.dart';
+  import 'package:foodie/widgets/progress_bar.dart';
+  import 'package:foodie/widgets/text_widget_header.dart';
+
+  class ItemsScreen extends StatefulWidget {
+
+    final Menus? model;
+    ItemsScreen({this.model});
+
+    @override
+    _ItemsScreenState createState() => _ItemsScreenState();
+  }
+
+  class _ItemsScreenState extends State<ItemsScreen>
+  {
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient( //const linearGradient
+                colors: [
+                  Colors.pink.shade400,
+                  Colors.red.shade400,
+                ],
+                begin: const FractionalOffset(0.0, 0.5),
+                end: const FractionalOffset(1.0, 0.5),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp,
+              )
+            ),
+          ),
+          title: Text(
+            sharedPreferences!.getString("name")!,
+            style: const TextStyle(fontSize: 25, fontFamily: "Lobster"),
+          ),
+          centerTitle: true,
+          //automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.library_add),
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (c)=> ItemsUploadScreen(model: widget.model)));
+              },
+            ),
+          ],
+        ),
+        drawer: MyDrawer(),
+        body: CustomScrollView(
+          slivers: [
+            SliverPersistentHeader(pinned: true, delegate: TextWidgetHeader(title: "My " + widget.model!.menuTitle.toString() + "'s Items")),
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                .collection("sellers")
+                .doc(sharedPreferences!.getString("uid"))
+                .collection("menus")
+                .doc(widget.model!.menuID)
+                .collection("items")
+                .orderBy("publishedDate", descending: true)
+                .snapshots(),
+              builder: (context, snapshot){
+                return !snapshot.hasData
+                  ? SliverToBoxAdapter(
+                    child: Center(child: circularProgress(),),
+                    )
+                  : SliverStaggeredGrid.countBuilder(
+                    crossAxisCount: 1,
+                    staggeredTileBuilder: (c) => StaggeredTile.fit(1),
+                    itemBuilder: (context, index){
+                      Items model = Items.fromJson(
+                        snapshot.data!.docs[index].data()! as Map<String, dynamic>,
+                      );
+                      return ItemsDesignWidget(
+                        model: model, // Is gonna get fixed with iterms.design.dart
+                        context: context,
+                      );
+                    },
+                    itemCount: snapshot.data!.docs.length,
+                    );
+              },
+            ),        
+          ]
+        )
+      );
+    }
+  }
+  ```
+  Test 18.1: Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)
+
+    <p align="center">
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step18-test-1.jpeg" width="600">
+    </p>

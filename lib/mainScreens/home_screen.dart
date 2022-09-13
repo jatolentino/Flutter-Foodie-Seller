@@ -73,7 +73,9 @@ class _HomeScreenState extends State<HomeScreen> {
             stream: FirebaseFirestore.instance
               .collection("sellers")
               .doc(sharedPreferences!.getString("uid"))
-              .collection("menus").snapshots(),
+              .collection("menus")
+              .orderBy("publishedDate", descending: true)
+              .snapshots(),
             builder: (context, snapshot){
               return !snapshot.hasData
                 ? SliverToBoxAdapter(
