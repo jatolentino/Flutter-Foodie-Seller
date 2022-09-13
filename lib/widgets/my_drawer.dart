@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodie/authentication/auth_screen.dart';
 import 'package:foodie/global/global.dart';
+import 'package:foodie/mainScreens/home_screen.dart';
 
 class MyDrawer extends StatelessWidget{ //important to set to true in homescreen automaticallyImplyLeading: true, OR SIMPLY DETELETE THE FALSE STATEMENT
 
@@ -55,7 +56,7 @@ class MyDrawer extends StatelessWidget{ //important to set to true in homescreen
                     style: TextStyle(color: Colors.black),
                   ),
                   onTap: (){
-
+                    Navigator.push(context, MaterialPageRoute(builder: (c)=> HomeScreen()));
                   },
                 ),
                 ListTile(
@@ -96,7 +97,7 @@ class MyDrawer extends StatelessWidget{ //important to set to true in homescreen
                   ),
                   onTap: (){
                     firebaseAuth.signOut().then((value){
-                    Navigator.push(context, MaterialPageRoute(builder: (c)=> AuthScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (c)=> AuthScreen()));
                     });
                   },
                 ),
