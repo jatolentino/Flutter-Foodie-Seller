@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:foodie/authentication/auth_screen.dart';
 import 'package:foodie/global/global.dart';
+import 'package:foodie/mainScreens/earnings_screen.dart';
+import 'package:foodie/mainScreens/history_screen.dart';
 import 'package:foodie/mainScreens/home_screen.dart';
+import 'package:foodie/mainScreens/new_orders_screen.dart';
 
 class MyDrawer extends StatelessWidget{ //important to set to true in homescreen automaticallyImplyLeading: true, OR SIMPLY DETELETE THE FALSE STATEMENT
 
@@ -66,7 +69,7 @@ class MyDrawer extends StatelessWidget{ //important to set to true in homescreen
                     style: TextStyle(color: Colors.black),
                   ),
                   onTap: (){
-                    
+                    Navigator.push(context, MaterialPageRoute(builder: (c)=> EarningsScreen()));
                   },
                 ),
                 ListTile(
@@ -76,7 +79,7 @@ class MyDrawer extends StatelessWidget{ //important to set to true in homescreen
                     style: TextStyle(color: Colors.black),
                   ),
                   onTap: (){
-                    
+                    Navigator.push(context, MaterialPageRoute(builder: (c)=> NewOrdersScreen()));
                   },
                 ),
                 ListTile(
@@ -86,7 +89,7 @@ class MyDrawer extends StatelessWidget{ //important to set to true in homescreen
                     style: TextStyle(color: Colors.black),
                   ),
                   onTap: (){
-                    
+                     Navigator.push(context, MaterialPageRoute(builder: (c)=> HistoryScreen()));
                   },
                 ),
                 ListTile(

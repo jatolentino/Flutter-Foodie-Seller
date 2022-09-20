@@ -1,19 +1,29 @@
 # Foddie app
 
 This app has the following features:
+- Login/Register System
+- Firebase database integration
+- Drawer Screen with tabs: Home, My earnings, New orders, History, Sign out
+- Create, read, update, delete actions on menus and menu items
 
 ## Result of the project
-This is the final result of the projected obtained @ the step 11 that belongs to the [`ver-1.4`]()
+The final result of this project belongs to the ver [`ver-1.5`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.5).
+<p align="center">
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/final-1.jpeg" width="500">
+</p><br/>
 
-<!-- <p align="center">
-    	<img src="https://github.com/jatolentino/Foodie/.../file.png" width="400">
+<p align="center">
+ <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-1.jpeg" width="250">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-2.jpeg" width="250">
+</p><br/>
+
+<p align="center">
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/final-2.jpeg" width="600">
 </p>
-
-<br> -->
 
 ## How to run the project?
 
-<!-- - Clone the repository and open the terminal and navigate to the `ios` folder, then run:
+Clone the repository and open the terminal and navigate to the `ios` folder, then run:
 
     ```bash
     flutter pub add firebase_auth
@@ -21,12 +31,12 @@ This is the final result of the projected obtained @ the step 11 that belongs to
     //sudo gem install cocoapods
     flutter pub get
     pod install
-    ``` -->
+    ```
 
+- Configure the firebase database, following the link [`Step 9.1: Create a firebase project`](https://github.com/jatolentino/Flutter-Foodie#configure_firebase)
 
-<!-- 
-- Configure the firebase database, following the Step 8 (`Create a firebase project`).
-- Enjoy! -->
+- Enjoy!
+
 
 ## Follow along
 
@@ -2246,7 +2256,7 @@ Add the progress_bar.dart to display a loading icon (linear or circular)
     <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step16-test-1.jpeg" width="200">
   </p>
 
-## 17. Create a widget to upload items (that belong to menus)
+## 17. Create a widget to upload items for each menu
 - Create the uploadScreens/items_upload_screen.dart file. The code inserts data to `itemsScreen.dart` and then the latter sends data to the `info_design.dart` which then is added to the `home_scrre.dart`.<br/>
 `itemsUploadScreen` > `itemsScreen` > `infoDesign` > `home_screen`
   ```dart
@@ -2975,3 +2985,29 @@ Add the progress_bar.dart to display a loading icon (linear or circular)
   <p align="center">
     <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step18-test-1.jpeg" width="600">
   </p>
+
+## 19. Touchups
+
+- Adding a delete menu button to delete the whole menu with its items along
+  <p align="center">
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-1.jpeg" width="300">
+    </p>
+- Adding a delete button in the item's detail screen
+  <p align="center">
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-2.jpeg" width="300">
+    </p>
+- Completing the drawer
+  - Adding the earnings screen
+    <p align="center">
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-3.jpeg" width="500">
+    </p>
+  - Displaying the incoming orders
+  
+    <p align="center">
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-4.jpeg" width="500">
+    </p>
+
+  - Summary of orders with a History screen
+    <p align="center">
+      <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-5.jpeg" width="500">
+    </p>
