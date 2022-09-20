@@ -829,6 +829,7 @@ class _LoginScreenState extends State<LoginScreen> {
 ```
 
 ### 10. Configure firebase
+<a id="configure_firebase"></a>
 - Go to console.firebase.google.com and `Add project`
 - Assign a name for the project: Food App
 - Disable: `Enable Google Analytics tor this project` and hit on `Continue`
