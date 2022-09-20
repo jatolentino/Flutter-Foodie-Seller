@@ -828,7 +828,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 ```
 
-### 10. Configure firebase
+### 9.1. Configure the firebase
 <a id="configure_firebase"></a>
 - Go to console.firebase.google.com and `Add project`
 - Assign a name for the project: Food App
