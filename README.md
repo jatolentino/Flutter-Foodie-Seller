@@ -762,6 +762,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   > -Also, open google maps and verify that it can show the actual location <br>
   > -Finally, if it's necessary to change the location to any point in the map so that the emulator picks that point as the actual location, tap on the three dots of the emulator > Location, and seach for any desired address and choose the `Set Location` option
 
+
+Compiled @ the branch of [`ver-1.1`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.1)
+
 ### 9. Complete the login screen
 - In lib/authentication create the login.dart file
 ```dart
@@ -834,8 +837,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 ```
+<a id="configure_firebase"></a>
+### 9.1. Configure the firebase
 
-### 10. Configure firebase
 - Go to console.firebase.google.com and `Add project`
 - Assign a name for the project: Food App
 - Disable: `Enable Google Analytics tor this project` and hit on `Continue`
