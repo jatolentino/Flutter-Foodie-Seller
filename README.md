@@ -13,8 +13,8 @@ The final result of this project belongs to the ver [`ver-1.5`](https://github.c
 </p><br/>
 
 <p align="center">
- <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-1.jpeg" width="250">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-2.jpeg" width="250">
+ <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-1.jpeg" width="200">  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/step19-test-2.jpeg" width="200">
 </p><br/>
 
 <p align="center">
