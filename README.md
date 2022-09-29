@@ -1709,13 +1709,13 @@ Test 13.1: Compiled @ the branch of [`ver-1.3`](https://github.com/jatolentino/F
     }
   }
   ```
- <!--
+  <!--
   Test 14.1: Compiled @ the branch of [`ver-1.4`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.4)
-
   <p align="center">
     <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.4/sources/step14-test-1.jpeg" width="200">
   </p>
--->
+  -->
+
 ## 15 Add the menus to the seller's dashboard
 - Ceate lib/uploadScreen/menus_upload_screen.dart <br/>
 Allow sellers to upload images from their camera or the gallery with the functions:
