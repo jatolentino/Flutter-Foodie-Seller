@@ -6,6 +6,7 @@ This app has the following features:
 - Drawer Screen with tabs: Home, My earnings, New orders, History, Sign out
 - Create, read, update, delete actions on menus and menu items
 
+
 ## Result of the project
 The final result of this project belongs to the ver [`ver-1.5`](https://github.com/jatolentino/Flutter-Foodie/tree/v1.5).
 <p align="center">
