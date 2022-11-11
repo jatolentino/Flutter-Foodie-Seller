@@ -21,7 +21,6 @@ The final result of this project belongs to the ver [`ver-1.5`](https://github.c
   <img src="https://github.com/jatolentino/Flutter-Foodie/blob/v1.5/sources/final-2.jpeg" width="600">
 </p>
 
-
 ## How to run the project?
 
 Clone the repository and open the terminal and navigate to the `ios` folder, then run:
