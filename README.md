@@ -1,5 +1,6 @@
 # Foddie Seller Mobile App for IOS and Android
 
+
 This app has the following features:
 - Login/Register System
 - Firebase database integration
