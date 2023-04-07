@@ -39,7 +39,6 @@ Clone the repository and open the terminal and navigate to the `ios` folder, the
 
 - Enjoy!
 
-
 ## Follow along
 
 ### 1. Getting Started
